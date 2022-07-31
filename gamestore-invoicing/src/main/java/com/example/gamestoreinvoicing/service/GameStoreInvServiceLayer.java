@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@FeignClient(name = "gamestorecatalog.Service")
+@FeignClient(name = "gamestore-catalog")
 @Component
 @Service
 public class GameStoreInvServiceLayer {
@@ -104,7 +104,8 @@ public class GameStoreInvServiceLayer {
         } else if (invoiceViewModel.getItemType().equals("Game")) {
             Game tempGame = null;
             tempGame = gameStoreClient.getGameById(gameStoreClient.getGameById());
-            Optional<Game> returnVal = gameStoreClient.getGameById(gameStoreClient.getGameById(Game id)}
+            Optional<Game> returnVal = gameStoreClient.getGameById(gameStoreClient.getGameById());
+
 
         if (tempGame == null)
             throw new IllegalArgumentException("Game not found.");
