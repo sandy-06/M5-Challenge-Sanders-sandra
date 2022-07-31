@@ -1,7 +1,6 @@
 package com.example.gamestorecatalog.contoller;
 import com.example.gamestorecatalog.service.ServiceLayer;
 import com.example.gamestorecatalog.viewModel.ConsoleViewModel;
-import com.example.gamestorecatalog.service.ServiceLayer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;

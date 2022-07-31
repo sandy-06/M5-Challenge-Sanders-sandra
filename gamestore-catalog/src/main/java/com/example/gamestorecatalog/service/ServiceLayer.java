@@ -11,8 +11,8 @@ import java.util.Optional;
 
 import com.example.gamestorecatalog.repository.*;
 import com.example.gamestorecatalog.model.*;
-import com.example.gamestorecatalog.viewModel.ConsoleViewModel;
-import com.example.gamestorecatalog.viewModel.GameViewModel;
+import com.example.gamestorecatalog.viewModel.*;
+
 import com.example.gamestorecatalog.viewModel.TShirtViewModel;
 
 @Component

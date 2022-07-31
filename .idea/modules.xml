@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/M5-Challenge-Sanders-Sandra.iml" filepath="$PROJECT_DIR$/.idea/M5-Challenge-Sanders-Sandra.iml" />
+      <module fileurl="file://$PROJECT_DIR$/config/config.iml" filepath="$PROJECT_DIR$/config/config.iml" />
       <module fileurl="file://$PROJECT_DIR$/gamestore-catalog/gamestore-catalog.iml" filepath="$PROJECT_DIR$/gamestore-catalog/gamestore-catalog.iml" />
       <module fileurl="file://$PROJECT_DIR$/gamestore-invoicing/gamestore-invoicing.iml" filepath="$PROJECT_DIR$/gamestore-invoicing/gamestore-invoicing.iml" />
       <module fileurl="file://$PROJECT_DIR$/registry/registry.iml" filepath="$PROJECT_DIR$/registry/registry.iml" />
