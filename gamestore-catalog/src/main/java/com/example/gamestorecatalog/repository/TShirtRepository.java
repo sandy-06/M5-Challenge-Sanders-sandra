@@ -10,5 +10,7 @@ public interface TShirtRepository extends JpaRepository<TShirt, Long> {
     List<TShirt> findAllBySize(String size);
     List<TShirt> findAllByColor(String color);
 
+
+
 }
 

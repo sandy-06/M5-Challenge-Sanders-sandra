@@ -40,7 +40,7 @@ public class GameStoreInvServiceLayer {
         this.invoiceRepo = invoiceRepo;
         this.taxRepo = taxRepo;
         this.processingFeeRepo = processingFeeRepo;
-        this.gameStoreClient =  gameStoreClient;
+        this.gameStoreClient = gameStoreClient;
     }
 
     public InvoiceViewModel createInvoice(InvoiceViewModel invoiceViewModel) {
@@ -57,6 +57,17 @@ public class GameStoreInvServiceLayer {
             throw new IllegalArgumentException(invoiceViewModel.getQuantity() +
                     ": Unrecognized Quantity. Must be > 0.");
         }
+        if(Console= invoiceViewModel.getItemType()) {
+            Console console = gameStoreClient.getConsoleById(invoiceViewModel.getItemId());
+            if (console == null)
+                throw new IllegalArgumentException("Unrecognized Console Id: " + invoiceViewModel.getItemId());
+        } else if (Game = invoiceViewModel.getItemType()) {
+            Game game = gameStoreClient.getGameById(invoiceViewModel.getItemId());
+            if (game == null)
+                throw new IllegalArgumentException("Unrecognized Game Id: " + invoiceViewModel.getItemId());
+        } else {
+            throw new IllegalArgumentException("Unrecognized Item type. Valid ones: Console or Game");
+        }
 
         //start building invoice...
         Invoice invoice = new Invoice();
@@ -71,7 +82,7 @@ public class GameStoreInvServiceLayer {
         //Checks the item type and get the correct unit price
         //Check if we have enough quantity
         //Api call to get the unit price of the item
-        if (invoiceViewModel.getItemType().equals("Console")) {
+        if(invoiceViewModel.getItemType().equals("Console")) {
             Console tempCon = null;
             Optional<Console> returnVal = Optional.ofNullable(gameStoreClient.getConsoleById(invoiceViewModel.getItemId()));
             tempCon = gameStoreClient.getConsoleById(invoiceViewModel.getItemId());
@@ -84,7 +95,7 @@ public class GameStoreInvServiceLayer {
                 throw new IllegalArgumentException("Requested item is unavailable.");
             }
 
-            if (invoiceViewModel.getQuantity()> tempCon.getQuantity()){
+            if (invoiceViewModel.getQuantity() > tempCon.getQuantity()) {
                 throw new IllegalArgumentException("Requested quantity is unavailable.");
             }
 
@@ -92,83 +103,112 @@ public class GameStoreInvServiceLayer {
 
         } else if (invoiceViewModel.getItemType().equals("Game")) {
             Game tempGame = null;
-            tempGame = gameStoreClient.getGameById(invoiceViewModel.getItemId());
-            Optional<Game> returnVal = gameStoreClient.getGameById(gameStoreClient.getGameById());
+            tempGame = gameStoreClient.getGameById(gameStoreClient.getGameById());
+            Optional<Game> returnVal = gameStoreClient.getGameById(gameStoreClient.getGameById(Game id)}
 
-            if (returnVal.isPresent()) {
-                tempGame = returnVal.get();
-            } else {
-                throw new IllegalArgumentException("Requested item is unavailable.");
-            }
-
-            if(invoiceViewModel.getQuantity() >  tempGame.getQuantity()){
-                throw new IllegalArgumentException("Requested quantity is unavailable.");
-            }
-            invoice.setUnitPrice(tempGame.getPrice());
-
-        } else if (invoiceViewModel.getItemType().equals("TShirt")) {
-            TShirt tempTShirt = null;
-            tempTShirt = gameStoreClient.getTShirtsById(invoiceViewModel.getItemId());
-            Optional<TShirt> returnVal = Optional.ofNullable(gameStoreClient.getTShirtsById(invoiceViewModel.getItemId()));
-
-            if (returnVal.isPresent()) {
-                tempTShirt = returnVal.get();
-            } else {
-                throw new IllegalArgumentException("Requested item is unavailable.");
-            }
-
-            if(invoiceViewModel.getQuantity() >  tempTShirt.getQuantity()){
-                throw new IllegalArgumentException("Requested quantity is unavailable.");
-            }
-            invoice.setUnitPrice(tempTShirt.getPrice());
-
-        } else {
-            throw new IllegalArgumentException(invoiceViewModel.getItemType()+
-                    ": Unrecognized Item type. Valid ones: T-Shirt, Console, or Game");
-        }
-
-        //Validate State and Calc tax...
-        BigDecimal tempTaxRate;
-        Optional<Tax> returnVal = taxRepo.findById(invoice.getState());
+        if (tempGame == null)
+            throw new IllegalArgumentException("Game not found.");
 
         if (returnVal.isPresent()) {
-            tempTaxRate = returnVal.get().getRate();
-        } else {
-            throw new IllegalArgumentException(invoice.getState() + ": Invalid State code.");
-        }
-
-        if (!tempTaxRate.equals(BigDecimal.ZERO))
-            invoice.setTax(tempTaxRate.multiply(invoice.getSubtotal()));
-        else
-            throw new IllegalArgumentException(invoice.getState() + ": Invalid State code.");
-
-        BigDecimal processingFee;
-        Optional<ProcessingFee> returnVal2 = processingFeeRepo.findById(invoiceViewModel.getItemType());
-
-        if (returnVal2.isPresent()) {
-            processingFee = returnVal2.get().getFee();
+            tempGame = returnVal.get();
         } else {
             throw new IllegalArgumentException("Requested item is unavailable.");
         }
 
-        invoice.setProcessingFee(processingFee);
+        if (invoiceViewModel.getQuantity() > tempGame.getQuantity()) {
+            throw new IllegalArgumentException("Requested quantity is unavailable.");
+        }
+        invoice.setUnitPrice(tempGame.getPrice());
 
-        //Checks if quantity of items if greater than 10 and adds additional processing fee
-        if (invoiceViewModel.getQuantity() > 10) {
-            invoice.setProcessingFee(invoice.getProcessingFee().add(PROCESSING_FEE));
+    } else if(GameStoreClient.getItemType().
+
+    equals("TShirt"))
+
+    {
+        TShirt tempTShirt = null;
+        tempTShirt = gameStoreClient.getTShirtsById(GameStoreClient.getItemId());
+        Optional<TShirt> returnVal = Optional.ofNullable(gameStoreClient.getTShirtsById(GameStoreClient.getItemId()));
+
+        if (returnVal.isPresent()) {
+            tempTShirt = returnVal.get();
+        } else {
+            throw new IllegalArgumentException("Requested item is unavailable.");
         }
 
-        invoice.setTotal(invoice.getSubtotal().add(invoice.getProcessingFee()).add(invoice.getTax()));
-
-        //checks total for validation
-        if ((invoice.getTotal().compareTo(MAX_INVOICE_TOTAL) > 0)) {
-            throw new IllegalArgumentException("Subtotal exceeds maximum purchase price of $999.99");
+        if (GameStoreClient.getQuantity() > tempTShirt.getQuantity()) {
+            throw new IllegalArgumentException("Requested quantity is unavailable.");
         }
+        invoice.setUnitPrice(tempTShirt.getPrice());
 
-        invoice = invoiceRepo.save(invoice);
+    } else
 
-        return buildInvoiceViewModel(invoice);
+    {
+        throw new IllegalArgumentException(GameStoreClient.getItemType() +
+                ": Unrecognized Item type. Valid ones: T-Shirt, Console, or Game");
     }
+
+    //Validate State and Calc tax...
+    BigDecimal tempTaxRate;
+    Optional<Tax> returnVal = taxRepo.findById(invoice.getState());
+
+        if(returnVal.isPresent())
+
+    {
+        tempTaxRate = returnVal.get().getRate();
+    } else if(invoice.getState() == null)
+    {
+        tempTaxRate = new BigDecimal("0");
+    } else if(invoice.getState() == "") {
+        tempTaxRate = new BigDecimal("0");
+    } else {
+        throw new IllegalArgumentException("Unrecognized State. Valid ones: " +
+                "AL, AK, AZ, AR, CA, CO, CT, DE, FL, GA, HI, ID, IL, IN, IA, KS, KY, LA, ME, MD, MA, MI, MN, MS, MO, MT, NE, NV, NH, NJ, NM, NY, NC, ND, OH, OK, OR, PA, RI, SC, SD, TN, TX, UT, VT, VA, WA, WV, WI, WY");
+    }
+
+    BigDecimal processingFee;
+    Optional<ProcessingFee> returnVal2 = processingFeeRepo.findById(InvoiceViewModel.getItemType());
+
+        if(returnVal2.isPresent())
+
+    {
+        processingFee = returnVal2.get().getFee();
+    } else
+
+    {
+        throw new IllegalArgumentException("Requested item is unavailable.");
+    }
+
+        Invoice.setProcessingFee(processingFee);
+
+    //Checks if quantity of items if greater than 10 and adds additional processing fee
+        if(InvoiceViewModel.getQuantity()>10)
+
+    {
+        invoice.setProcessingFee(invoice.getProcessingFee().add(PROCESSING_FEE));
+    }
+
+        invoice.setTotal(invoice.getSubtotal().
+
+    add(invoice.getProcessingFee()).
+
+    add(invoice.getTax()));
+
+    //checks total for validation
+        if((invoice.getTotal().
+
+    compareTo(MAX_INVOICE_TOTAL) >0))
+
+    {
+        throw new IllegalArgumentException("Subtotal exceeds maximum purchase price of $999.99");
+    }
+
+    invoice =invoiceRepo.save(invoice);
+
+        return
+
+    buildInvoiceViewModel(invoice);
+
+}
 
     public InvoiceViewModel getInvoice(long id) {
         Optional<Invoice> invoice = invoiceRepo.findById(id);
