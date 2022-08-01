@@ -51,7 +51,7 @@ public class TShirt {
         this.price = price;
     }
 
-    public long getQuantity() {
+    public  long getQuantity() {
         return quantity;
     }
 

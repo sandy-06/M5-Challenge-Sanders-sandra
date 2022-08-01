@@ -40,7 +40,7 @@ public interface GameStoreClient {
     public String getGame(@PathVariable List<Game> games);
 
     @RequestMapping(value = "/game/{id}", method = RequestMethod.GET)
-    public Game getGameById(@PathVariable Game id);
+    public Game getGameById(@PathVariable Long id);
 
     @RequestMapping(value = "/game/title/{title}", method = RequestMethod.GET)
     public List<Game> getGameByTitle(@PathVariable String title);

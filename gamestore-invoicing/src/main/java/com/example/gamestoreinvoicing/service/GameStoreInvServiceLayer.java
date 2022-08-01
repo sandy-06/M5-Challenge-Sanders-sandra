@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@FeignClient(name = "gamestore-catalog")
+
 @Component
 @Service
 public class GameStoreInvServiceLayer {
@@ -28,11 +28,14 @@ public class GameStoreInvServiceLayer {
     private final BigDecimal MAX_INVOICE_TOTAL = new BigDecimal("999.99");
     private final BigDecimal TAX_RATE = new BigDecimal("0.06");
 
-
-    InvoiceRepository invoiceRepo;
-    TaxRepository taxRepo;
-    ProcessingFeeRepository processingFeeRepo;
-    GameStoreClient gameStoreClient;
+@Autowired
+    private InvoiceRepository invoiceRepo;
+@Autowired
+    private TaxRepository taxRepo;
+@Autowired
+    private ProcessingFeeRepository processingFeeRepo;
+@Autowired
+    private GameStoreClient gameStoreClient;
 
     @Autowired
     public GameStoreInvServiceLayer(InvoiceRepository invoiceRepo, TaxRepository taxRepo, ProcessingFeeRepository processingFeeRepo, GameStoreClient gameStoreClient) {
@@ -57,16 +60,22 @@ public class GameStoreInvServiceLayer {
             throw new IllegalArgumentException(invoiceViewModel.getQuantity() +
                     ": Unrecognized Quantity. Must be > 0.");
         }
-        if(Console= invoiceViewModel.getItemType()) {
+        if (invoiceViewModel.getItemType().equals("Console")) {
             Console console = gameStoreClient.getConsoleById(invoiceViewModel.getItemId());
             if (console == null)
                 throw new IllegalArgumentException("Unrecognized Console Id: " + invoiceViewModel.getItemId());
-        } else if (Game = invoiceViewModel.getItemType()) {
+
+        } else if (invoiceViewModel.getItemType().equals("Game") ) {
             Game game = gameStoreClient.getGameById(invoiceViewModel.getItemId());
             if (game == null)
                 throw new IllegalArgumentException("Unrecognized Game Id: " + invoiceViewModel.getItemId());
+        } else if (invoiceViewModel.getItemType().equals("TShirt")) {
+            TShirt tShirt = gameStoreClient.getTShirtsById(invoiceViewModel.getItemId());
+            if (tShirt == null)
+                throw new IllegalArgumentException("Unrecognized TShirt Id: " + invoiceViewModel.getItemId());
+
         } else {
-            throw new IllegalArgumentException("Unrecognized Item type. Valid ones: Console or Game");
+            throw new IllegalArgumentException("Unrecognized Item type. Valid ones: Console, Game , TShirt");
         }
 
         //start building invoice...
@@ -82,7 +91,7 @@ public class GameStoreInvServiceLayer {
         //Checks the item type and get the correct unit price
         //Check if we have enough quantity
         //Api call to get the unit price of the item
-        if(invoiceViewModel.getItemType().equals("Console")) {
+        if (invoiceViewModel.getItemType().equals("Console")) {
             Console tempCon = null;
             Optional<Console> returnVal = Optional.ofNullable(gameStoreClient.getConsoleById(invoiceViewModel.getItemId()));
             tempCon = gameStoreClient.getConsoleById(invoiceViewModel.getItemId());
@@ -103,113 +112,98 @@ public class GameStoreInvServiceLayer {
 
         } else if (invoiceViewModel.getItemType().equals("Game")) {
             Game tempGame = null;
-            tempGame = gameStoreClient.getGameById(gameStoreClient.getGameById());
-            Optional<Game> returnVal = gameStoreClient.getGameById(gameStoreClient.getGameById());
+            //tempGame = gameStoreClient.getGameById(gameStoreClient.getGameById());
+            Optional<Game> returnVal = Optional.ofNullable(gameStoreClient.getGameById(invoice.getItemId()));
 
 
-        if (tempGame == null)
-            throw new IllegalArgumentException("Game not found.");
+            if (tempGame == null)
+                throw new IllegalArgumentException("Game not found.");
+
+            if (returnVal.isPresent()) {
+                tempGame = returnVal.get();
+            } else {
+                throw new IllegalArgumentException("Requested item is unavailable.");
+            }
+
+            if (invoiceViewModel.getQuantity() > tempGame.getQuantity()) {
+                throw new IllegalArgumentException("Requested quantity is unavailable.");
+            }
+            invoice.setUnitPrice(tempGame.getPrice());
+
+        } else if ((invoiceViewModel.getItemType().equals("TShirt"))){
+
+
+            TShirt tempTShirt = null;
+            //tempTShirt = gameStoreClient.getTShirtsById(invoice.getItemId());
+            Optional<TShirt> returnVal = Optional.ofNullable(gameStoreClient.getTShirtsById(invoice.getItemId()));
+
+            if (returnVal.isPresent()) {
+                tempTShirt = returnVal.get();
+            } else {
+                throw new IllegalArgumentException("Requested item is unavailable.");
+            }
+
+            if (tempTShirt.getQuantity() > tempTShirt.getQuantity()) {
+                throw new IllegalArgumentException("Requested quantity is unavailable.");
+            }
+            invoice.setUnitPrice(tempTShirt.getPrice());
+
+        } else {
+            throw new IllegalArgumentException(invoiceViewModel.getItemType() +
+                    ": Unrecognized Item type. Valid ones: T-Shirt, Console, or Game");
+        }
+
+        //Validate State and Calc tax...
+        BigDecimal tempTaxRate;
+        Optional<Tax> returnVal = taxRepo.findById(invoice.getState());
 
         if (returnVal.isPresent()) {
-            tempGame = returnVal.get();
+            tempTaxRate = returnVal.get().getRate();
+        } else if (invoice.getState() == null) {
+            tempTaxRate = new BigDecimal("0");
+        } else if (invoice.getState() == "") {
+            tempTaxRate = new BigDecimal("0");
+        } else {
+            throw new IllegalArgumentException("Unrecognized State. Valid ones: " +
+                    "AL, AK, AZ, AR, CA, CO, CT, DE, FL, GA, HI, ID, IL, IN, IA, KS, KY, LA, ME, MD, MA, MI, MN, MS, MO, MT, NE, NV, NH, NJ, NM, NY, NC, ND, OH, OK, OR, PA, RI, SC, SD, TN, TX, UT, VT, VA, WA, WV, WI, WY");
+        }
+
+        BigDecimal processingFee;
+        Optional<ProcessingFee> returnVal2 = processingFeeRepo.findById(invoiceViewModel.getItemType());
+
+        if (returnVal2.isPresent()) {
+            processingFee = returnVal2.get().getFee();
         } else {
             throw new IllegalArgumentException("Requested item is unavailable.");
         }
 
-        if (invoiceViewModel.getQuantity() > tempGame.getQuantity()) {
-            throw new IllegalArgumentException("Requested quantity is unavailable.");
+        invoice.setProcessingFee(processingFee);
+
+        //Checks if quantity of items if greater than 10 and adds additional processing fee
+        if (invoiceViewModel.getQuantity() > 10) {
+            invoice.setProcessingFee(invoice.getProcessingFee().add(PROCESSING_FEE));
         }
-        invoice.setUnitPrice(tempGame.getPrice());
-
-    } else if(GameStoreClient.getItemType().
-
-    equals("TShirt"))
-
-    {
-        TShirt tempTShirt = null;
-        tempTShirt = gameStoreClient.getTShirtsById(GameStoreClient.getItemId());
-        Optional<TShirt> returnVal = Optional.ofNullable(gameStoreClient.getTShirtsById(GameStoreClient.getItemId()));
-
-        if (returnVal.isPresent()) {
-            tempTShirt = returnVal.get();
-        } else {
-            throw new IllegalArgumentException("Requested item is unavailable.");
-        }
-
-        if (GameStoreClient.getQuantity() > tempTShirt.getQuantity()) {
-            throw new IllegalArgumentException("Requested quantity is unavailable.");
-        }
-        invoice.setUnitPrice(tempTShirt.getPrice());
-
-    } else
-
-    {
-        throw new IllegalArgumentException(GameStoreClient.getItemType() +
-                ": Unrecognized Item type. Valid ones: T-Shirt, Console, or Game");
-    }
-
-    //Validate State and Calc tax...
-    BigDecimal tempTaxRate;
-    Optional<Tax> returnVal = taxRepo.findById(invoice.getState());
-
-        if(returnVal.isPresent())
-
-    {
-        tempTaxRate = returnVal.get().getRate();
-    } else if(invoice.getState() == null)
-    {
-        tempTaxRate = new BigDecimal("0");
-    } else if(invoice.getState() == "") {
-        tempTaxRate = new BigDecimal("0");
-    } else {
-        throw new IllegalArgumentException("Unrecognized State. Valid ones: " +
-                "AL, AK, AZ, AR, CA, CO, CT, DE, FL, GA, HI, ID, IL, IN, IA, KS, KY, LA, ME, MD, MA, MI, MN, MS, MO, MT, NE, NV, NH, NJ, NM, NY, NC, ND, OH, OK, OR, PA, RI, SC, SD, TN, TX, UT, VT, VA, WA, WV, WI, WY");
-    }
-
-    BigDecimal processingFee;
-    Optional<ProcessingFee> returnVal2 = processingFeeRepo.findById(InvoiceViewModel.getItemType());
-
-        if(returnVal2.isPresent())
-
-    {
-        processingFee = returnVal2.get().getFee();
-    } else
-
-    {
-        throw new IllegalArgumentException("Requested item is unavailable.");
-    }
-
-        Invoice.setProcessingFee(processingFee);
-
-    //Checks if quantity of items if greater than 10 and adds additional processing fee
-        if(InvoiceViewModel.getQuantity()>10)
-
-    {
-        invoice.setProcessingFee(invoice.getProcessingFee().add(PROCESSING_FEE));
-    }
 
         invoice.setTotal(invoice.getSubtotal().
 
-    add(invoice.getProcessingFee()).
+                add(invoice.getProcessingFee()).
 
-    add(invoice.getTax()));
+                add(invoice.getTax()));
 
-    //checks total for validation
-        if((invoice.getTotal().
+        //checks total for validation
+        if ((invoice.getTotal().
 
-    compareTo(MAX_INVOICE_TOTAL) >0))
+                compareTo(MAX_INVOICE_TOTAL) > 0)) {
+            throw new IllegalArgumentException("Subtotal exceeds maximum purchase price of $999.99");
+        }
 
-    {
-        throw new IllegalArgumentException("Subtotal exceeds maximum purchase price of $999.99");
-    }
-
-    invoice =invoiceRepo.save(invoice);
+        invoice = invoiceRepo.save(invoice);
 
         return
 
-    buildInvoiceViewModel(invoice);
+                buildInvoiceViewModel(invoice);
 
-}
+    }
 
     public InvoiceViewModel getInvoice(long id) {
         Optional<Invoice> invoice = invoiceRepo.findById(id);

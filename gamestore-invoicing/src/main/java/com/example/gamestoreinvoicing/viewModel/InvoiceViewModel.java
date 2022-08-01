@@ -94,7 +94,7 @@ public class InvoiceViewModel {
         this.itemType = itemType;
     }
 
-    public long getItemId() {
+    public Long getItemId() {
         return itemId;
     }
 
@@ -150,7 +150,7 @@ public class InvoiceViewModel {
         this.id = id;
     }
 
-    public long getQuantity() {
+    public  long getQuantity() {
         return quantity;
     }
 

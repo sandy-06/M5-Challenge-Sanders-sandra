@@ -24,7 +24,7 @@ public class GameController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public GameViewModel getGameInfo(@PathVariable("id") long gameId) {
+    public GameViewModel getGameById(@PathVariable("id") long gameId) {
         GameViewModel gameViewModel = service.getGame(gameId);
         if (gameViewModel == null) {
             throw new IllegalArgumentException("Game not found for id " + gameId);
